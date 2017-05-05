@@ -1,0 +1,30 @@
+#+TITLE: 关于 Emacs-Lisp 编程的见解
+#+URL: http://www.nongnu.org/emacs-tiny-tools/elisp-coding/index-body.html                                  
+#+AUTHOR: Samray
+#+CATEGORY: elisp-common
+#+DATE: 
+#+OPTIONS: ^:{}
+--------------------------------------------------------------------------------------------------------------
+* 1.0 Document id
+  Copyright © 1995-2007 Jari Aalto
+
+  License: This material may be distributed only subject to the terms and
+  conditions set forth in GNU General Public License v2 or later; or, at your
+  option, distributed under the terms of GNU Free Documentation License version
+  1.2 or later (GNU FDL).
+
+  本文档包含了关于 Unix Emacs Lisp 编程的信息。它发表了关于 Emacs lisp 编程的风格
+  指南以及展示了关于 Emacs lisp编译器的信息。而本文档关于 Emacs-lisp 的代码剖析都
+  是经过笔者亲自实践过的，而其中一部分代码的运行结果也会展示出来。
+** 1.1 What this document is not
+   本文档不会向你介绍 lisp, 在阅读本文档之前你需要了解基本的 lisp 知识，例如：函
+   数，局部变量，全局变量以及在 lisp 中使用的各种列表。总而言之，本文不会为你提
+   供解决特定问题的函数或者是具体的解决方案。不过还是会有一些学习案例的。
+** 1.2 What is this document?
+   本文包含着一些你可能觉得很方便的指南。这些指南可能是在 Emacs 用户组或者新闻列
+   表上发布过的好的文章或者是你未曾品读过的好文章，无论如何，都希望你会喜爱它们。
+   建议你在阅读本文之前，先去阅读一些那些优美的 lisp 编程指南。
+   
+   本文包含的是对编程的最佳实践的一些指导建议，但是它不是你一定要遵守的 "戒律
+   ". 你可以舒心地汲取你需要的精华，
+
