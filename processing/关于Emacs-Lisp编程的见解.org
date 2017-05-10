@@ -38,12 +38,12 @@
    [kai] Kai Grossjohann
    [vladimir] Vladimir Alexiev
 * 2.0 The basic coding suggestions
-** Major rule1 - comment as much as possible
+** 2.1 Major rule1 - comment as much as possible
    当别人在阅读你的代码的时候，会为你添加的额外的解释而对你心存感激的。可能有一
    天，你的这些代码由另外一个程序员来维护. 所以你要谨记，当你不再为这些代码工作
    的时候，需要新的维护者来接管你的代码，而你的代码就代表着你自己，所以，还是尽
    量地让别人了解你吧。
-** Majro rule2 - maintenance comes first
+** 2.2 Majro rule2 - maintenance comes first
    可维护性和可读性应该优先考虑，所以不要编写过于紧湊简短的代码。如果你的代码是"
    简洁"的，你的方法就很容易阅读。无论你如何紧缩你的代码，你的代码都不会跑得更快，
    但是却更有可能丧失可读性。有些人喜欢把他们的函数里面所有的空格删掉，这样他们
@@ -51,7 +51,7 @@
    
    把相互关联的部分以组的形式组织起来，并在有重要事情发生的地方 (例如函数或者使
    条件判断)添加上破折号或者其他容易被注意到的符号
-** Majro rule3 - don't spare variables
+** 2.3 Majro rule3 - don't spare variables
    不要害怕使用很多变量，特别是在需要局部变量的函数里面。如果一个变量可以命名得
    合适，那么它本身就能解释代码的作用。使用 XEmacs 字节码编译器来检查一下你是否
    有定义过但未曾使用的变量，这样编译的结果就可以更加整洁 (需要注意：XEmacs 的字
@@ -59,3 +59,36 @@
    
    在大多数情况下，使用过多变量所导致的副作用都是可以忽略的。留意本文接下来的分
    析结果。
+** 2.4 Major rule4 - document your functions and variables well
+   为你的函数和变量写好文档。如果函数里面定义了全局变量，那么在文档中说明 (使用
+   "References:" 标签). 每一个函数和变量都应该有 DOC-STRING (字符形式的文档), 因
+   为当你调用 /describe-symbols/ 函数的时候，它会打印出符号 (SYMBOL) 和对应的文
+   档 (DOC-STRING). 并且你也可以使用 /super-apropos/ 函数搜索文档字符。不要忘记
+   在字符文档的第一行应该是完整的语句。
+   
+   如果你以这样的形式编写代码，难道你不会感到沮丧么？
+   #+BEGIN_SRC emacs-lisp
+   (defconst foo-list-storage nil)  
+   #+END_SRC
+   
+   现在你必须通读代码才能了解变量在哪里使用以及如何去使用。最初的 Emacs 建议你在
+   自定义的包的变量添加文档，就像上面的语句。但是这条建议历史已经很悠久了，回顾
+   还是 Emacs 18.xx 的那些日子，文档字符串的内存空间是有限的。但是在新版的
+   Emacs, 已经拥有可以减少字符文档内存消耗的动态字节码编译选项了。所以已经不需要
+   通过减少字符串文档来 "手工优化"了
+** 2.5 Major rule5 - don't use tricks
+   考虑一下这样的情形，当你在开发的时候，有新的开发者加入，但是他/她是完全不了解
+   Lisp 的。尽量编写清晰的代码. 不要使用奇巧淫技，因为这些技巧可能会对阅读你代码
+   的读者不友好。在你编写那些看起来挺复杂的代码的时候，你同时需要编写好的文档来
+   解释你的代码。
+** 2.6 Major rule6 - use byte compiler to check leaks
+   使用 /emacs -q/ 命令来启动新的 Emacs 实例，然后通过运行 /M-x
+   byte-compile-file/ 来编译 XXX.el 文件以检查你的代码是否存在变量泄漏。
+** 2.7 Use the error function
+   如果你不能继续执行代码时，使用 /error/ 命令，或者是当其他的程序依赖于你的代码，
+   最好是这些代码也无法继续执行。不要去处理不要的错误条件－在 Emacs Lisp 它通常
+   是不会工作的，就好像你熟悉的 Java 或者是 C++里面的 throw 语句。
+** Make function as general as possible
+
+
+
