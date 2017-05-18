@@ -1,4 +1,4 @@
-#+TITLE: 关于 Emacs-Lisp 编程的见解
+#+TITLE: 关于 Emacs-Lisp 编程的体会
 #+URL: http://www.nongnu.org/emacs-tiny-tools/elisp-coding/index-body.html                                  
 #+AUTHOR: Samray
 #+CATEGORY: elisp-common
@@ -88,7 +88,103 @@
    如果你不能继续执行代码时，使用 /error/ 命令，或者是当其他的程序依赖于你的代码，
    最好是这些代码也无法继续执行。不要去处理不要的错误条件－在 Emacs Lisp 它通常
    是不会工作的，就好像你熟悉的 Java 或者是 C++里面的 throw 语句。
-** Make function as general as possible
+** 2.8 Make function as general as possible
+   但不是普遍得可以吃苹果或者汽车 (译者注：译者也很迷，But not so general that
+   it can eat apples and cars). 刚刚好就差不多了，函数无需太过长，如果还是很长得
+   话，可以使用 /cond/ 语句。有时候可能你没办法继续细分任务，或者是继续划分函数
+   不合情理，遇到这些情况你就要自己进行判断。
+   
+   其次，太长的函数会让你有这不是好的代码的感觉。通常都会有可以重用的代码，这些
+   代码就可以独立出来，但是，也可能保留在原来的函数。只要你可以说服自己: 这些长
+   的函数就是你所需要的。
+* 3.0 Coding style issues
+** 3.1 Function's variable definitions
+   不整洁的代码：
+   #+BEGIN_SRC emacs-lisp
+   defun xx (arg1 arg2 &optional arg3 )
+         (let ((foo 1) (bar "xx") baz-flag point))
+          ...    
+   #+END_SRC
+   或许写成这样会更好：
+   #+BEGIN_SRC emacs-lisp
+   (defun xx (arg1 arg2 &optional arg3 )
+         (let* ((foo         1)                ;temporary counter
+                (bar         "xx")             ;displayed value
+                baz-flag
+                point)
+         ...    
+   #+END_SRC
+   小提示：如果那些让 /let/ 语句中的变量排列得更加美观，你可以使用一些扩展的包，
+   例如 *tinytab*, 这是一个 tab 的 minor mode.
+   + 把需要初始化的变量放到最前面，然后是不需要初始化的变量。上面的例子 /foo/ 和
+     /bar/ 就定义在 /baz-flag/ 和 /point/ 之前
+   + 把每一个变量放到单独的一行，并且在需要的时候，添加关于用法的注释。
+   + 命名变量的时候尽量使用描述性的名字。这样有助阅读，例如选择 "buffer" 而不是 "b" 或者 "buf"
+   + 长的名字大多数情况下都是更好的选择。
+** 3.2 Let with initialised empty values
+   让我们来看一下示例代码：
+   #+BEGIN_SRC emacs-lisp
+     (let* ((foo '())    ;; A list
+   	 (bar nil)    ;; A truth value
+   	 test)        ;; A scratch variable.  
+   #+END_SRC
+   初始时将 /foo/,/bar/,/test/ 置为 /nil/ 是行之有效的。不要让额外的因素迷惑了你。
+   程序员的意图是很清晰地： /foo/ 变量是一个 list,并且它用 /()/ 来初始化表面它接
+   收的参数是 list 中的元素等等。但是示例代码还可以更加地简洁。在开发者的视线中
+   出现越多的符号，人类的目光就更不容易聚焦到重要的内容。我们可以尝试以下下面的代码：
+   #+BEGIN_SRC emacs-lisp
+         (let* (foo-list     ;; A list
+             bar-flag     ;; A truth value
+             test)        ;; A scratch variable.   
+   #+END_SRC
+   在上面的代码，变量名就阐述了它们的用处，此外，省略掉的符号明显改善了代码结构。
+   你自己知道，这些变量默认值就是 /nil/,所以就没有必要给变量赋值一个空列表了。绝
+   大部分情况下，少即是多 (less is more). 此外，在函数体里面使用这些变量的时候，
+   变量代表的意义总是非常清晰的，因为它们的名字就阐明了它们的用处。
+** There are alternatives to `progn`
+   /progn/ 可以让代码快速地向右缩进，并且让你以紧湊的形式编写代码。下面列出来的
+   示例代码都具有同样的效果。
+   #+BEGIN_SRC emacs-lisp
+         (if variable                    ;test here
+          (progn
+             ...it was non-nil , do something))   
+   #+END_SRC
+   有时候 /cond/ 像 /progn/ 那样被使用。它具有隐式的 /progn/ 风格：
+   #+BEGIN_SRC emacs-lisp
+     (cond
+       (variable                      ;test here
+        ...code..
+        ...code..))    
+   #+END_SRC
+   此外，还有 /and/ 关键字，但是它需要你所有将要执行的语句都返回一个 非空值。所
+   以不是每次都可以像 /progn/ 那样被使用：
+   #+BEGIN_SRC emacs-lisp
+      (and variable
+           ..code..
+           ..code..) 
+   #+END_SRC
+   在 Common lisp 的库， /cl.el/ 提供了更简洁的使用方法。这也更加优雅，个人更倾
+   向于这种表达方式：
+   #+BEGIN_SRC emacs-lisp
+         (eval-when-compile (require 'cl))
 
-
-
+      (when variable
+        ...code..
+        ...code..)    
+   #+END_SRC
+   [vladimir 语：] 还有很多糟糕的用法。我可以想到的最糟糕的用法就是对一个内联函
+   数使用映射 (mapcar)：
+   #+BEGIN_SRC emacs-lisp
+      (mapcar (function (lambda (e)
+                          (do stuff)))
+            '(1 2 3))    
+   #+END_SRC
+   上面的代码预留太少的位置来编写逻辑代码了; 特别是当包含另外一个隐射函数的时候。
+   下面的代码看起来就好多了：
+   #+BEGIN_SRC emacs-lisp
+         (mapcar
+       (function
+        (lambda (e)
+          (do stuff)))
+       '(1 2 3))    
+   #+END_SRC
