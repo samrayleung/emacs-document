@@ -141,7 +141,7 @@
    你自己知道，这些变量默认值就是 /nil/,所以就没有必要给变量赋值一个空列表了。绝
    大部分情况下，少即是多 (less is more). 此外，在函数体里面使用这些变量的时候，
    变量代表的意义总是非常清晰的，因为它们的名字就阐明了它们的用处。
-** There are alternatives to `progn`
+** 3.3 There are alternatives to `progn`
    /progn/ 可以让代码快速地向右缩进，并且让你以紧湊的形式编写代码。下面列出来的
    示例代码都具有同样的效果。
    #+BEGIN_SRC emacs-lisp
@@ -188,3 +188,50 @@
           (do stuff)))
        '(1 2 3))    
    #+END_SRC
+* 4.0 Using global variables
+** 4.1 Thoughts on globals
+   因为你可能在 Emacs lisp 中大量使用全局变量，很多的变量会被全局变量代替。当你
+   意识到使用全局变量是一种很糟糕的实现并且应该尽量避免这样做的时候，你会被 lisp
+   程序中所已经被大量使用的全局变量所震惊(这些全局变量被用作前缀或者是命名空间)
+   
+   类变量作用和全局变量的作用很相似，特别是当类的继承链很长的时候。额，严谨而论，
+   变量的作用域会变得越来越大
+   #+BEGIN_SRC 
+                     derived classes
+      BASE        -->C1 -->C2 -->C3
+      public var1               sees BASE's var1    
+   #+END_SRC
+   /var1/ 并不是真正的全局变量，因为它会在类被删除的时候就结束生命周期。但是，当
+   你看到类似的代码的时候，你"看到"是出现在函数之外，你应该马上意识到：我们应该
+   把 /var1/ 当作全局变量。我们总会忍不住认为本地变量是出现在函数内或者是函数体
+   内的，而函数外的被打包到类 (class)里的变量都是全局变量。虽说这种说法不是非常
+   准确，但是也是非常实用的。在 Emacs-lisp, 变量的 "范围" 是整个包，但是该变量也
+   "的确" 是全局变量，因为任何的包都可以看到这些变量。
+
+   在 Emacs lisp, 你可以把全局变量的使用分成几种不同的情况：
+   + 你想直接使用全局变量
+   + 在变量中间接使用： 使用不久前描述过的别名函数
+   + 使用控制函数：在函数中隐藏全局变量 (这是非常高级的抽象)
+** 4.2 Globals and emacs lisp packages
+   在 Emacs 的包中， 全局变量通常被用作：
+   + 用户的选项： nil/non-nil/some value.
+     #+BEGIN_SRC emacs-lisp
+      (defvar my-global-var t
+        "Some docs come here how to use it")    
+     #+END_SRC
+   + 自定义的用户函数或者是钩子。用户可以自己需要它喜欢的函数来完成工作。有经验
+     的 lisp 程序员一般不会使用默认的函数，取而代之的是编写它们自己的函数，并且
+     设置变量指向他们的函数实现：
+     #+BEGIN_SRC emacs-lisp
+      (defvar my-collect-function 'my-default-collect-function-1
+        "*There are two default choices:
+         'my-default-collect-function-1
+         'my-default-collect-function-2")    
+     #+END_SRC
+   + 包用来存储东西的私有的变量。包的维护者在程序的生命周期更新和阅读
+     /my-:hash-tabel/:
+     #+BEGIN_SRC emacs-lisp
+      (defvar my-hash-table nil
+        "Private. List of hash elements")    
+     #+END_SRC
+** 4.3 Aliasing to globals - summary
