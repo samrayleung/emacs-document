@@ -235,3 +235,38 @@
         "Private. List of hash elements")    
      #+END_SRC
 ** 4.3 Aliasing to globals - summary
+   澄清一下：下一节提到的术语别名 (aliasing) 并不是指真正的别名。这个变量也不是
+   真的关联到一个别名 (alias). 当你在使用一个别名变量的时候，你只需假定自己是在
+   使用一个全局变量。事实上，别名这个术语仅仅是为了假设你读取的是定义在函数里面
+   使用的全局变量。而不是你写入了一个像别名的变量，实际上我们使用的是复制变量。
+
+   下一节会更加全面地描述使用别名的好处，但是现在我们会列出复制变量的好处，以供参考：
+   + 当你的全局变量只是在 let 里面使用，你在函数里面一眼就能判断出全局变量的使用
+     情况。但是当你的函数有 10-20 行，你可能就没有那么容易发现全局变量的使用情况
+     了
+   + 当全局变量在 let 里面被设置了别名的时候，你可以为其添加额外的注释。
+   + 维护函数会变得更加容易：你可以把全局变量从 let 提取到函数的形式参数，你也无
+     需为此而更改函数体。只要你决定了参数应该直接传递给函数而不是从全局变量读取，
+     你可以就可以依次修改函数。
+** 4.4 Aliasing to globals - conter arguments
+   [vladimir 语：] 如果使用了别名，那么读者必须记住 /foo-mode-switch/ 和
+   /switch/ 其实是同一回事。此外，当你阅读函数体的时候， /foo-mode-switch/ 就是
+   一个清晰的全局变量 (也可能是一个用户选项), 但是你必须重新回去查看 let 语句以
+   判断 /switch/ 是用来干什么用的。对于同一个实体，使用两个名字并没有让其变得更
+   加清晰。下面是一些原因分析：
+   #+BEGIN_SRC emacs-lisp
+         (let ((local foo-global)))
+          (setq local (car local))
+      ;; end    
+   #+END_SRC
+   完整的名字似乎是太长了。当然 /dabbrev/ 或者 /PC-lisp-complete-symbol/ 可以帮
+   助你写出那些带有长长的名字的变量，但是这并不能帮助读者来阅读代码？或者是使用
+   不一样的名字
+   #+BEGIN_SRC emacs-lisp
+   (let ((case-fold-search nil))
+         (re-search-forward foo bar)   ; respect case
+      ;; end    
+   #+END_SRC
+** 4.5 Referring to global variable
+   如果要在函数里面使用了任何的全局变量，不要直接使用它们，应该把它们放到函数体
+   的 /let*/ 里面，这样任何人都可以一样就看出这个变量的用法了。
