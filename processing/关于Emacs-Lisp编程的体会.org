@@ -269,4 +269,39 @@
    #+END_SRC
 ** 4.5 Referring to global variable
    如果要在函数里面使用了任何的全局变量，不要直接使用它们，应该把它们放到函数体
-   的 /let*/ 里面，这样任何人都可以一样就看出这个变量的用法了。
+   的 /let*/ 里面，这样任何人都可以一样就看出这个变量的用法了。这样也让维护的过
+   程变得更加简单，因为变量的改动必须在 /let*/ 里面完成。个人更加喜欢把全局变量
+   放到 *let* 里面。
+   
+   对维护者而言，另外的好处就是如果他决定把全局变量重构成函数的形参，这样也可以
+   非常容易实现：你只需将全局变量从 let 里面提取到函数声明的参数列表，你无需改动
+   函数体，因为它使用的是局部变量：
+   #+BEGIN_SRC emacs-lisp
+    (defun my-func ()                ; #1
+        (let* ((list  my-mode-alist)   ;copy
+               ..other variables..)
+          ..BODY..))    
+   #+END_SRC 
+   你后来应该会发现使用函数的形式参数更加有效，因为函数变得更加通用。下面的就是
+   将全局变量提取到函数的参数列表的版本。注意函数体是完全没有发生改变的：
+   #+BEGIN_SRC emacs-lisp
+     (defun my-mode-func (list)          ; #2 , global is now an argument
+        (let* (
+               ..other variables..)
+          ..BODY..))    
+   #+END_SRC
+   [Vladimir] 建议：其实这种类型的抽象是没有必要的，因为函数从 #1 转换 到直接使
+   用全局变量的 #2 是相当容易的：
+   #+BEGIN_SRC emacs-lisp
+         (defun my-mode-func ()                      ; #1a
+          ..BODY..
+          (if (memq match my-mode-alist)
+              ...))
+
+
+      ;;  Now uses paramer, not global variable my-mode-alist
+      (defun my-mode-func (my-mode-alist)         ; #2a
+          ..BODY..
+          (if (memq match my-mode-alist)
+              ...))    
+   #+END_SRC
