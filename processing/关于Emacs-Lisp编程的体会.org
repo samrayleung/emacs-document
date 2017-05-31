@@ -326,3 +326,71 @@
    而你唯一会为优化 /let*/ 而烦恼的情形就是函数会被调用很多次的时候。你知道该函
    数对于我程序的运行效率而言是非常有影响的么？可能与该函数无关，这就是为什么你
    要使用 lisp 分析器来找出类似的性能问题了。
+** 4.7 Deferring to global, caution
+   不能在 ~let~ 里面使用别名函数的唯一情况会在下面展示出来。我们可能需要介绍一个
+   控制函数来读取全局变量。假定我们有以下的情况：
+   #+BEGIN_SRC emacs-lisp
+         (defun my-foo ()
+        (let* ((table my-:passwd-entries-table) ;; copy global
+               point)
+      ..code..
+      ..code..
+      (my-change-passwd-table)                    ;; OOPPS!
+         (while table                             ;; error!
+           ..do, read content..
+           ..code..)))    
+   #+END_SRC
+   显而易见，如果函数在执行的时候，全局变量会被调用函数改变，我们是没可能预先读
+   到全局变量的值。
+   对于数量不多的全局变量，例如 5-10 个，用控制函数来读取全局变量是没有必要的。例如下面的例子：
+   #+BEGIN_SRC emacs-lisp
+         (defun my-foo ()
+        (let* (table                      ;; no global copy
+               point)
+      ..code..
+      ..code..
+      (my-change-passwd-table)            ;; Watch out!
+         (setq table (my-read-passwd))    ;; a macro to read global.
+
+         (while table                     ;; okay now..
+           ..do, read content..
+           ..code..)))    
+   #+END_SRC
+   
+   ~my-read-paswd~ 实现如下：
+   #+BEGIN_SRC emacs-lisp
+     (defmacro my-read-passwd ()
+        "Returns contents of my-:passwd-entries-table"
+          (` my-passwd-entries-table))    
+   #+END_SRC
+   使用这个单独的宏就有点挢枉过正了，但是如果你决定使用更多的全局变量，那么接下
+   来，它就有可能变成更复杂的函数：
+   #+BEGIN_SRC emacs-lisp
+    (defsubst my-read-variable (variable)
+        "Returns contents of global variables"
+        (cond
+         ((eq variable 'passwd)
+          my:passwd-entries-table)
+         ((eq variable 'user)
+          my-user)
+         (t
+          (error "No such variable '%s'" variable))))
+
+      (my-read-variable 'passwd)    
+   #+END_SRC
+   该函数通过可以描述该变量的符号进行调用。该实现在 lisp 调用和其他的外部函数中
+   将全局变量完全隐藏了。你可以决定你想要的数据应该实现什么样程度的抽象：对于小
+   程序而言，你可能不需要这么高层次的抽象，但是如果程序越来越大，而你也定义了
+   20-50 个全局变量，你可能就需要考虑使用相似的全局变量控制函数
+* 5.0 The 'let' forms in function
+** 5.1 Using only one let form inside funtion
+   时至今日，非常多的书以及开发者都建议你只在需要变量的代码块中定义相应的变量。
+   这是非常好的建议，你应该在需要编译的编程语言都遵守这条建议。对于 Emacs Lisp
+   而言，建议就是: "在合适的地方使用"
+   
+   注意：如果你把所有的变量都定义到函数开始的地方，在程序执行的时候，即创建变量
+   和销毁变量的时候，内存的使用情况会有一点不同。变量可能会占用比总体预期更多的
+   内存，出现这种情况的重点就是变量所存储的值。如果你把 100 个列表元素的值放到这
+   个变量里面，它自然会占用更多的内存，而不仅是变量定义时的内存。
+   
+   不过在实际情况中，你无需担忧这样小幅度的内存增长，因为创建和销毁一个变量同样
